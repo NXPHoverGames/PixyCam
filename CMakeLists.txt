@@ -33,7 +33,7 @@
 px4_add_module(
 	MODULE drivers__pixycam
 	MAIN pixycam
-	COMPILE_FLAGS
+	COMPILE_FLAGS -Wno-error=cast-align
 	STACK_MAIN 5000
 	SRCS
 		pixycam.cpp
