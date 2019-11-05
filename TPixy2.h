@@ -22,38 +22,38 @@
 // uncomment to turn on debug prints to console
 #define PIXY_DEBUG
 
-#define PIXY_DEFAULT_ARGVAL                  0x80000000
-#define PIXY_BUFFERSIZE                      0x104
-#define PIXY_CHECKSUM_SYNC                   0xc1af
-#define PIXY_NO_CHECKSUM_SYNC                0xc1ae
-#define PIXY_SEND_HEADER_SIZE                4
-#define PIXY_MAX_PROGNAME                    33
+#define PIXY_DEFAULT_ARGVAL 0x80000000
+#define PIXY_BUFFERSIZE 0x104
+#define PIXY_CHECKSUM_SYNC 0xc1af
+#define PIXY_NO_CHECKSUM_SYNC 0xc1ae
+#define PIXY_SEND_HEADER_SIZE 4
+#define PIXY_MAX_PROGNAME 33
 
-#define PIXY_TYPE_REQUEST_CHANGE_PROG        0x02
-#define PIXY_TYPE_REQUEST_RESOLUTION         0x0c
-#define PIXY_TYPE_RESPONSE_RESOLUTION        0x0d
-#define PIXY_TYPE_REQUEST_VERSION            0x0e
-#define PIXY_TYPE_RESPONSE_VERSION           0x0f
-#define PIXY_TYPE_RESPONSE_RESULT            0x01
-#define PIXY_TYPE_RESPONSE_ERROR             0x03
-#define PIXY_TYPE_REQUEST_BRIGHTNESS         0x10
-#define PIXY_TYPE_REQUEST_SERVO              0x12
-#define PIXY_TYPE_REQUEST_LED                0x14
-#define PIXY_TYPE_REQUEST_LAMP               0x16
-#define PIXY_TYPE_REQUEST_FPS                0x18
+#define PIXY_TYPE_REQUEST_CHANGE_PROG 0x02
+#define PIXY_TYPE_REQUEST_RESOLUTION 0x0c
+#define PIXY_TYPE_RESPONSE_RESOLUTION 0x0d
+#define PIXY_TYPE_REQUEST_VERSION 0x0e
+#define PIXY_TYPE_RESPONSE_VERSION 0x0f
+#define PIXY_TYPE_RESPONSE_RESULT 0x01
+#define PIXY_TYPE_RESPONSE_ERROR 0x03
+#define PIXY_TYPE_REQUEST_BRIGHTNESS 0x10
+#define PIXY_TYPE_REQUEST_SERVO 0x12
+#define PIXY_TYPE_REQUEST_LED 0x14
+#define PIXY_TYPE_REQUEST_LAMP 0x16
+#define PIXY_TYPE_REQUEST_FPS 0x18
 
-#define PIXY_RESULT_OK                       0
-#define PIXY_RESULT_ERROR                    -1
-#define PIXY_RESULT_BUSY                     -2
-#define PIXY_RESULT_CHECKSUM_ERROR           -3
-#define PIXY_RESULT_TIMEOUT                  -4
-#define PIXY_RESULT_BUTTON_OVERRIDE          -5
-#define PIXY_RESULT_PROG_CHANGING            -6
+#define PIXY_RESULT_OK 0
+#define PIXY_RESULT_ERROR -1
+#define PIXY_RESULT_BUSY -2
+#define PIXY_RESULT_CHECKSUM_ERROR -3
+#define PIXY_RESULT_TIMEOUT -4
+#define PIXY_RESULT_BUTTON_OVERRIDE -5
+#define PIXY_RESULT_PROG_CHANGING -6
 
 // RC-servo values
-#define PIXY_RCS_MIN_POS                     0
-#define PIXY_RCS_MAX_POS                     1000L
-#define PIXY_RCS_CENTER_POS                  ((PIXY_RCS_MAX_POS-PIXY_RCS_MIN_POS)/2)
+#define PIXY_RCS_MIN_POS 0
+#define PIXY_RCS_MAX_POS 1000L
+#define PIXY_RCS_CENTER_POS ((PIXY_RCS_MAX_POS - PIXY_RCS_MIN_POS) / 2)
 
 #include "Pixy2CCC.h"
 #include "Pixy2Line.h"
@@ -61,12 +61,13 @@
 #include <drivers/drv_hrt.h>
 #include <nuttx/clock.h>
 
-struct Version {
+struct Version
+{
 	void print()
 	{
 		char buf[64];
 		sprintf(buf, "hardware ver: 0x%x firmware ver: %d.%d.%d %s", hardware, firmwareMajor, firmwareMinor, firmwareBuild,
-			firmwareType);
+				firmwareType);
 		printf(buf);
 	}
 
@@ -77,7 +78,8 @@ struct Version {
 	char firmwareType[10];
 };
 
-template <class LinkType> class TPixy2
+template <class LinkType>
+class TPixy2
 {
 public:
 	TPixy2();
@@ -124,8 +126,8 @@ private:
 	bool m_cs;
 };
 
-
-template <class LinkType> TPixy2<LinkType>::TPixy2() : ccc(this), line(this), video(this)
+template <class LinkType>
+TPixy2<LinkType>::TPixy2() : ccc(this), line(this), video(this)
 {
 	// allocate buffer space for send/receive
 	m_buf = (uint8_t *)malloc(PIXY_BUFFERSIZE);
@@ -135,43 +137,48 @@ template <class LinkType> TPixy2<LinkType>::TPixy2() : ccc(this), line(this), vi
 	version = NULL;
 }
 
-template <class LinkType> TPixy2<LinkType>::~TPixy2()
+template <class LinkType>
+TPixy2<LinkType>::~TPixy2()
 {
 	m_link.close();
 	free(m_buf);
 }
 
-
-template <class LinkType> int8_t TPixy2<LinkType>::init(uint32_t arg)
+template <class LinkType>
+int8_t TPixy2<LinkType>::init(uint32_t arg)
 {
 	// uint32_t t0;
 	int8_t res;
+	res = m_line.init();
 
 	res = m_link.open(arg);
 
-	if (res < 0) {
+	if (res < 0)
+	{
 		return res;
 	}
 
 	// wait for pixy to be ready -- that is, Pixy takes a second or 2 boot up
 	// getVersion is an effective "ping".  We timeout after 5s.
-// 	for (t0 = millis(); millis() - t0 < 5000;) {
+	// 	for (t0 = millis(); millis() - t0 < 5000;) {
 	uint64_t start_time = hrt_absolute_time();
 
-	while ((hrt_absolute_time() - start_time) < 5000000) {
-		if (getVersion() >= 0) { // successful version get -> pixy is ready
+	while ((hrt_absolute_time() - start_time) < 5000000)
+	{
+		if (getVersion() >= 0)
+		{					 // successful version get -> pixy is ready
 			getResolution(); // get resolution so we have it
 			return PIXY_RESULT_OK;
 		}
 		usleep(5000);
-// 		//delayMicroseconds(5000); // delay for sync
+		// 		//delayMicroseconds(5000); // delay for sync
 	}
 	// timeout
 	return PIXY_RESULT_TIMEOUT;
 }
 
-
-template <class LinkType> int16_t TPixy2<LinkType>::getSync()
+template <class LinkType>
+int16_t TPixy2<LinkType>::getSync()
 {
 	uint8_t i, j, cprev;
 	uint8_t c = 0;
@@ -179,22 +186,26 @@ template <class LinkType> int16_t TPixy2<LinkType>::getSync()
 	uint16_t start;
 
 	// parse bytes until we find sync
-	for (i = j = 0, cprev = 0; true; i++) {
+	for (i = j = 0, cprev = 0; true; i++)
+	{
 		res = m_link.recv(&c, 1);
 
-		if (res >= PIXY_RESULT_OK) {
+		if (res >= PIXY_RESULT_OK)
+		{
 			// since we're using little endian, previous byte is least significant byte
 			start = cprev;
 			// current byte is most significant byte
 			start |= c << 8;
 			cprev = c;
 
-			if (start == PIXY_CHECKSUM_SYNC) {
+			if (start == PIXY_CHECKSUM_SYNC)
+			{
 				m_cs = true;
 				return PIXY_RESULT_OK;
 			}
 
-			if (start == PIXY_NO_CHECKSUM_SYNC) {
+			if (start == PIXY_NO_CHECKSUM_SYNC)
+			{
 				m_cs = false;
 				return PIXY_RESULT_OK;
 			}
@@ -203,8 +214,10 @@ template <class LinkType> int16_t TPixy2<LinkType>::getSync()
 		// If we've read some bytes and no sync, then wait and try again.
 		// And do that several more times before we give up.
 		// Pixy guarantees to respond within 100us.
-		if (i >= 4) {
-			if (j >= 4) {
+		if (i >= 4)
+		{
+			if (j >= 4)
+			{
 #ifdef PIXY_DEBUG
 				PX4_ERR("error: no response");
 #endif
@@ -219,22 +232,25 @@ template <class LinkType> int16_t TPixy2<LinkType>::getSync()
 	}
 }
 
-
-template <class LinkType> int16_t TPixy2<LinkType>::recvPacket()
+template <class LinkType>
+int16_t TPixy2<LinkType>::recvPacket()
 {
 	uint16_t csCalc, csSerial;
 	int16_t res;
 
 	res = getSync();
 
-	if (res < 0) {
+	if (res < 0)
+	{
 		return res;
 	}
 
-	if (m_cs) {
+	if (m_cs)
+	{
 		res = m_link.recv(m_buf, 4);
 
-		if (res < 0) {
+		if (res < 0)
+		{
 			return res;
 		}
 
@@ -245,21 +261,25 @@ template <class LinkType> int16_t TPixy2<LinkType>::recvPacket()
 
 		res = m_link.recv(m_buf, m_length, &csCalc);
 
-		if (res < 0) {
+		if (res < 0)
+		{
 			return res;
 		}
 
-		if (csSerial != csCalc) {
+		if (csSerial != csCalc)
+		{
 #ifdef PIXY_DEBUG
 			PX4_ERR("error: checksum");
 #endif
 			return PIXY_RESULT_CHECKSUM_ERROR;
 		}
-
-	} else {
+	}
+	else
+	{
 		res = m_link.recv(m_buf, 2);
 
-		if (res < 0) {
+		if (res < 0)
+		{
 			return res;
 		}
 
@@ -268,7 +288,8 @@ template <class LinkType> int16_t TPixy2<LinkType>::recvPacket()
 
 		res = m_link.recv(m_buf, m_length);
 
-		if (res < 0) {
+		if (res < 0)
+		{
 			return res;
 		}
 	}
@@ -276,8 +297,8 @@ template <class LinkType> int16_t TPixy2<LinkType>::recvPacket()
 	return PIXY_RESULT_OK;
 }
 
-
-template <class LinkType> int16_t TPixy2<LinkType>::sendPacket()
+template <class LinkType>
+int16_t TPixy2<LinkType>::sendPacket()
 {
 	// write header info at beginnig of buffer
 	m_buf[0] = PIXY_NO_CHECKSUM_SYNC & 0xff;
@@ -288,28 +309,32 @@ template <class LinkType> int16_t TPixy2<LinkType>::sendPacket()
 	return m_link.send(m_buf, m_length + PIXY_SEND_HEADER_SIZE);
 }
 
-
-template <class LinkType> int8_t TPixy2<LinkType>::changeProg(const char *prog)
+template <class LinkType>
+int8_t TPixy2<LinkType>::changeProg(const char *prog)
 {
 	int32_t res;
 
 	// poll for program to change
-	while (1) {
+	while (1)
+	{
 		strncpy((char *)m_bufPayload, prog, PIXY_MAX_PROGNAME);
 		m_length = PIXY_MAX_PROGNAME;
 		m_type = PIXY_TYPE_REQUEST_CHANGE_PROG;
 		sendPacket();
 
-		if (recvPacket() == 0) {
+		if (recvPacket() == 0)
+		{
 			res = *(uint32_t *)m_buf;
 
-			if (res > 0) {
-				getResolution();  // get resolution so we have it
+			if (res > 0)
+			{
+				getResolution();	   // get resolution so we have it
 				return PIXY_RESULT_OK; // success
 			}
-
-		} else {
-			return PIXY_RESULT_ERROR;        // some kind of bitstream error
+		}
+		else
+		{
+			return PIXY_RESULT_ERROR; // some kind of bitstream error
 		}
 
 		//delayMicroseconds(1000);
@@ -317,51 +342,58 @@ template <class LinkType> int8_t TPixy2<LinkType>::changeProg(const char *prog)
 	}
 }
 
-
-template <class LinkType> int8_t TPixy2<LinkType>::getVersion()
+template <class LinkType>
+int8_t TPixy2<LinkType>::getVersion()
 {
 	m_length = 0;
 	m_type = PIXY_TYPE_REQUEST_VERSION;
 	sendPacket();
 
-	if (recvPacket() == 0) {
-		if (m_type == PIXY_TYPE_RESPONSE_VERSION) {
+	if (recvPacket() == 0)
+	{
+		if (m_type == PIXY_TYPE_RESPONSE_VERSION)
+		{
 			version = (Version *)m_buf;
 			return m_length;
-
-		} else if (m_type == PIXY_TYPE_RESPONSE_ERROR) {
+		}
+		else if (m_type == PIXY_TYPE_RESPONSE_ERROR)
+		{
 			return PIXY_RESULT_BUSY;
 		}
 	}
 
-	return PIXY_RESULT_ERROR;  // some kind of bitstream error
+	return PIXY_RESULT_ERROR; // some kind of bitstream error
 }
 
-
-template <class LinkType> int8_t TPixy2<LinkType>::getResolution()
+template <class LinkType>
+int8_t TPixy2<LinkType>::getResolution()
 {
 	m_length = 1;
 	m_bufPayload[0] = 0; // for future types of queries
 	m_type = PIXY_TYPE_REQUEST_RESOLUTION;
 	sendPacket();
 
-	if (recvPacket() == 0) {
-		if (m_type == PIXY_TYPE_RESPONSE_RESOLUTION) {
+	if (recvPacket() == 0)
+	{
+		if (m_type == PIXY_TYPE_RESPONSE_RESOLUTION)
+		{
 			frameWidth = *(uint16_t *)m_buf;
 			frameHeight = *(uint16_t *)(m_buf + sizeof(uint16_t));
 			return PIXY_RESULT_OK; // success
-
-		} else {
+		}
+		else
+		{
 			return PIXY_RESULT_ERROR;
 		}
-
-	} else {
-		return PIXY_RESULT_ERROR;        // some kind of bitstream error
+	}
+	else
+	{
+		return PIXY_RESULT_ERROR; // some kind of bitstream error
 	}
 }
 
-
-template <class LinkType> int8_t TPixy2<LinkType>::setCameraBrightness(uint8_t brightness)
+template <class LinkType>
+int8_t TPixy2<LinkType>::setCameraBrightness(uint8_t brightness)
 {
 	uint32_t res;
 
@@ -370,17 +402,19 @@ template <class LinkType> int8_t TPixy2<LinkType>::setCameraBrightness(uint8_t b
 	m_type = PIXY_TYPE_REQUEST_BRIGHTNESS;
 	sendPacket();
 
-	if (recvPacket() == 0) { // && m_type==PIXY_TYPE_RESPONSE_RESULT && m_length==4)
+	if (recvPacket() == 0)
+	{ // && m_type==PIXY_TYPE_RESPONSE_RESULT && m_length==4)
 		res = *(uint32_t *)m_buf;
 		return (int8_t)res;
-
-	} else {
-		return PIXY_RESULT_ERROR;        // some kind of bitstream error
+	}
+	else
+	{
+		return PIXY_RESULT_ERROR; // some kind of bitstream error
 	}
 }
 
-
-template <class LinkType> int8_t TPixy2<LinkType>::setServos(uint16_t s0, uint16_t s1)
+template <class LinkType>
+int8_t TPixy2<LinkType>::setServos(uint16_t s0, uint16_t s1)
 {
 	uint32_t res;
 
@@ -390,17 +424,19 @@ template <class LinkType> int8_t TPixy2<LinkType>::setServos(uint16_t s0, uint16
 	m_type = PIXY_TYPE_REQUEST_SERVO;
 	sendPacket();
 
-	if (recvPacket() == 0 && m_type == PIXY_TYPE_RESPONSE_RESULT && m_length == 4) {
+	if (recvPacket() == 0 && m_type == PIXY_TYPE_RESPONSE_RESULT && m_length == 4)
+	{
 		res = *(uint32_t *)m_buf;
 		return (int8_t)res;
-
-	} else {
-		return PIXY_RESULT_ERROR;        // some kind of bitstream error
+	}
+	else
+	{
+		return PIXY_RESULT_ERROR; // some kind of bitstream error
 	}
 }
 
-
-template <class LinkType> int8_t TPixy2<LinkType>::setLED(uint8_t r, uint8_t g, uint8_t b)
+template <class LinkType>
+int8_t TPixy2<LinkType>::setLED(uint8_t r, uint8_t g, uint8_t b)
 {
 	uint32_t res;
 
@@ -411,16 +447,19 @@ template <class LinkType> int8_t TPixy2<LinkType>::setLED(uint8_t r, uint8_t g, 
 	m_type = PIXY_TYPE_REQUEST_LED;
 	sendPacket();
 
-	if (recvPacket() == 0 && m_type == PIXY_TYPE_RESPONSE_RESULT && m_length == 4) {
+	if (recvPacket() == 0 && m_type == PIXY_TYPE_RESPONSE_RESULT && m_length == 4)
+	{
 		res = *(uint32_t *)m_buf;
 		return (int8_t)res;
-
-	} else {
-		return PIXY_RESULT_ERROR;        // some kind of bitstream error
+	}
+	else
+	{
+		return PIXY_RESULT_ERROR; // some kind of bitstream error
 	}
 }
 
-template <class LinkType> int8_t TPixy2<LinkType>::setLamp(uint8_t upper, uint8_t lower)
+template <class LinkType>
+int8_t TPixy2<LinkType>::setLamp(uint8_t upper, uint8_t lower)
 {
 	uint32_t res;
 
@@ -430,16 +469,19 @@ template <class LinkType> int8_t TPixy2<LinkType>::setLamp(uint8_t upper, uint8_
 	m_type = PIXY_TYPE_REQUEST_LAMP;
 	sendPacket();
 
-	if (recvPacket() == 0 && m_type == PIXY_TYPE_RESPONSE_RESULT && m_length == 4) {
+	if (recvPacket() == 0 && m_type == PIXY_TYPE_RESPONSE_RESULT && m_length == 4)
+	{
 		res = *(uint32_t *)m_buf;
 		return (int8_t)res;
-
-	} else {
-		return PIXY_RESULT_ERROR;        // some kind of bitstream error
+	}
+	else
+	{
+		return PIXY_RESULT_ERROR; // some kind of bitstream error
 	}
 }
 
-template <class LinkType> int8_t TPixy2<LinkType>::getFPS()
+template <class LinkType>
+int8_t TPixy2<LinkType>::getFPS()
 {
 	uint32_t res;
 
@@ -447,12 +489,14 @@ template <class LinkType> int8_t TPixy2<LinkType>::getFPS()
 	m_type = PIXY_TYPE_REQUEST_FPS;
 	sendPacket();
 
-	if (recvPacket() == 0 && m_type == PIXY_TYPE_RESPONSE_RESULT && m_length == 4) {
+	if (recvPacket() == 0 && m_type == PIXY_TYPE_RESPONSE_RESULT && m_length == 4)
+	{
 		res = *(uint32_t *)m_buf;
 		return (int8_t)res;
-
-	} else {
-		return PIXY_RESULT_ERROR;        // some kind of bitstream error
+	}
+	else
+	{
+		return PIXY_RESULT_ERROR; // some kind of bitstream error
 	}
 }
 

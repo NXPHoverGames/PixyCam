@@ -31,17 +31,18 @@
  *
  ****************************************************************************/
 
- /**
+/**
  * @file pixycam.cpp
  *
  * Example for reading deteced blocks and print them on the console
  *
  * @author Leo Mustafa
  */
+#include <px4_platform_common/app.h>
+#include <px4_platform_common/init.h>
+#include <px4_platform_common/tasks.h>
+#include <px4_platform_common/posix.h>
 
-#include <px4_config.h>
-#include <px4_tasks.h>
-#include <px4_posix.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <poll.h>
@@ -59,26 +60,29 @@ int pixycam_main(int argc, char *argv[])
 
 	Pixy2 pixy;
 
-
-	if (pixy.init() == 0) {
+	if (pixy.init() == 0)
+	{
 
 		pixy.getVersion();
 		pixy.version->print();
 		usleep(1000);
 
-		while (1) {
+		while (1)
+		{
 
 			int i;
 			// grab blocks!
 			pixy.ccc.getBlocks();
 
 			// If there are detect blocks, print them!
-			if (pixy.ccc.numBlocks) {
+			if (pixy.ccc.numBlocks)
+			{
 				printf("Detected ");
 				printf("%i", pixy.ccc.numBlocks);
 				printf("\n");
 
-				for (i = 0; i < pixy.ccc.numBlocks; i++) {
+				for (i = 0; i < pixy.ccc.numBlocks; i++)
+				{
 					printf("  block ");
 					printf("%i", i);
 					printf(": ");
