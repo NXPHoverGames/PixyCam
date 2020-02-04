@@ -149,7 +149,6 @@ int8_t TPixy2<LinkType>::init(uint32_t arg)
 {
 	// uint32_t t0;
 	int8_t res;
-	res = m_line.init();
 
 	res = m_link.open(arg);
 
