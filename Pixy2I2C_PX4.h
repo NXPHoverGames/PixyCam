@@ -1,16 +1,36 @@
-//
-// begin license header
-//
-// This file is part of Pixy CMUcam5 or "Pixy" for short
-//
-// All Pixy source code is provided under the terms of the
-// GNU General Public License v2 (http://www.gnu.org/licenses/gpl-2.0.html).
-// Those wishing to use Pixy source code, software and/or
-// technologies under different licensing terms should contact us at
-// cmucam@cs.cmu.edu. Such licensing terms are available for
-// all portions of the Pixy codebase presented here.
-//
-// end license header
+/****************************************************************************
+ *
+ * Copyright 2020 Charmed Labs.
+ * Copyright 2020 NXP.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ ****************************************************************************/
 //
 // Arduino ICSP SPI link class
 
@@ -21,12 +41,12 @@
 #include <drivers/device/i2c.h>
 #include "board_config.h"
 
-#define IRLOCK_I2C_BUS			PX4_I2C_BUS_EXPANSION
-#define IRLOCK_I2C_ADDRESS		0x54 /** 7-bit address (non shifted) **/
+#define IRLOCK_I2C_BUS PX4_I2C_BUS_EXPANSION
+#define IRLOCK_I2C_ADDRESS 0x54 /** 7-bit address (non shifted) **/
 
-#define IRLOCK0_DEVICE_PATH		"/dev/Pixy2"
+#define IRLOCK0_DEVICE_PATH "/dev/Pixy2"
 
-class PIXY2_I2C: public device::I2C
+class PIXY2_I2C : public device::I2C
 {
 public:
 	PIXY2_I2C();
@@ -37,7 +57,8 @@ public:
 
 	int8_t open(uint32_t arg)
 	{
-		return I2C::init();;
+		return I2C::init();
+		;
 	}
 
 	void close()
@@ -49,15 +70,18 @@ public:
 	{
 		uint8_t i;
 
-		if (cs) {
+		if (cs)
+		{
 			*cs = 0;
 		}
 
 		transfer(nullptr, 0, &buf[0], len);
 
-		for (i = 0; i < len; i++) {
+		for (i = 0; i < len; i++)
+		{
 
-			if (cs) {
+			if (cs)
+			{
 				*cs += buf[i];
 			}
 		}
@@ -69,8 +93,6 @@ public:
 	{
 
 		transfer(&buf[0], len, nullptr, 0);
-		//int ret_tran = transfer(&buf[0], len, nullptr, 0);
-		//printf("ret_tran = %i\n", ret_tran);
 
 		return len;
 	}
@@ -79,8 +101,7 @@ private:
 	bool _external;
 };
 
-PIXY2_I2C::PIXY2_I2C() :
-	I2C("PIXY2_I2C", IRLOCK0_DEVICE_PATH, PX4_I2C_BUS_EXPANSION, IRLOCK_I2C_ADDRESS, 400000)
+PIXY2_I2C::PIXY2_I2C() : I2C("PIXY2_I2C", IRLOCK0_DEVICE_PATH, PX4_I2C_BUS_EXPANSION, IRLOCK_I2C_ADDRESS, 400000)
 {
 	_external = true;
 }
@@ -94,7 +115,6 @@ int PIXY2_I2C::init()
 {
 	return I2C::init();
 };
-
 
 typedef TPixy2<PIXY2_I2C> Pixy2;
 
