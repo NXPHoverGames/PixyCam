@@ -31,6 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************/
+
 //
 // Arduino ICSP SPI link class
 
@@ -41,7 +42,7 @@
 #include <drivers/device/i2c.h>
 #include "board_config.h"
 
-#define IRLOCK_I2C_BUS PX4_I2C_BUS_EXPANSION
+#define IRLOCK_I2C_BUS 1
 #define IRLOCK_I2C_ADDRESS 0x54 /** 7-bit address (non shifted) **/
 
 #define IRLOCK0_DEVICE_PATH "/dev/Pixy2"
@@ -49,11 +50,21 @@
 class PIXY2_I2C : public device::I2C
 {
 public:
-	PIXY2_I2C();
+	PIXY2_I2C() : I2C(0, "PIXY2_I2C", IRLOCK_I2C_BUS, IRLOCK_I2C_ADDRESS, 400000)
+	{
+		_external = true;
+	}
+
 	virtual ~PIXY2_I2C() = default;
 
-	bool is_external();
-	int init();
+	bool is_external()
+	{
+		return _external;
+	};
+	int init()
+	{
+		return I2C::init();
+	};
 
 	int8_t open(uint32_t arg)
 	{
@@ -93,27 +104,14 @@ public:
 	{
 
 		transfer(&buf[0], len, nullptr, 0);
+		//int ret_tran = transfer(&buf[0], len, nullptr, 0);
+		//printf("ret_tran = %i\n", ret_tran);
 
 		return len;
 	}
 
 private:
 	bool _external;
-};
-
-PIXY2_I2C::PIXY2_I2C() : I2C("PIXY2_I2C", IRLOCK0_DEVICE_PATH, PX4_I2C_BUS_EXPANSION, IRLOCK_I2C_ADDRESS, 400000)
-{
-	_external = true;
-}
-
-bool PIXY2_I2C::is_external()
-{
-	return _external;
-};
-
-int PIXY2_I2C::init()
-{
-	return I2C::init();
 };
 
 typedef TPixy2<PIXY2_I2C> Pixy2;
